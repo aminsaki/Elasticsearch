@@ -19,9 +19,13 @@
 
 #Note: If you're on Windows Ubuntu, the systemctl commands won't work. Instead, use the following commands to start, stop and restart the #Elasticsearch service:
  
- sudo service elasticsearch start
+sudo service elasticsearch start
+
 sudo service elasticsearch stop
+
 sudo service elasticsearch restart
+
+
  #Allow Remote Access 
  
  sudo vim /etc/elasticsearch/elasticsearch.yml 
