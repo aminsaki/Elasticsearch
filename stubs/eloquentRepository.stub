@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Http\repositories\{{modelName}};
+
+use App\Models\{{modelName}};
+
+class eloquent{{modelName}}Repository implements {{modelName}}RepositoryInterface
+{
+    protected ${{modelName}};
+
+    public function __construct({{modelName}} ${{modelName}})
+    {
+        $this->{{modelName}} = ${{modelName}};
+    }
+
+    public function getAll()
+    {
+        return $this->{{modelName}}->get();
+    }
+
+    public function getById($id)
+    {
+        return $this->{{modelName}}->find($id);
+    }
+
+    public function create($data)
+    {
+        return $this->{{modelName}}->create($data);
+    }
+
+    public function update($data):void
+    {
+        $this->{{modelName}}->update($data);
+    }
+
+    public function delete($id):void
+    {
+        $this->{{modelName}}->destroy($id);
+    }
+}
