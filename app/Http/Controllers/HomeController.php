@@ -12,12 +12,13 @@ use Illuminate\Support\Str;
 class HomeController extends Controller
 {
 
+
     public function index(Request $request)
     {
-        if($request->search){
-            return view('WorkerSearch',['elastic'=>$this->serach($request->search)]);
+        if ( $request->search ) {
+            return view('WorkerSearch', ['elastic'=>$this->serach($request->search)]);
         }
-        return view('WorkerSearch',['workers'=>Worker::all()]);
+        return view('WorkerSearch', ['workers'=>Worker::all()]);
     }
 
     public function serach($search)
@@ -33,7 +34,7 @@ class HomeController extends Controller
             $questRel=Worker::WhereRaw("country LIKE ? ", '%' . $search . '%')->get();
             $this->Indexing($questRel);
         }
-         return $response['hits']['hits'];
+        return $response['hits']['hits'];
 
     }
 
@@ -43,11 +44,11 @@ class HomeController extends Controller
         $params=[];
         $params['index']="my_index";
         $params['id']=Str::random(30);
-        foreach($questRel as $row){
+        foreach($questRel as $row) {
             $params['body']=['name'=>$row->name, 'country'=>$row->ountry];
-         }
+        }
 
-        $data =   $client->index($params);
+        $data=$client->index($params);
         $response=json_decode($data, true);
         return $response;
 

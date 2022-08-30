@@ -28,7 +28,22 @@ Route::get('boolent_must', [Controller\WorkersController::class,'boolent_must'])
 Route::get('boolent_must_not', [Controller\WorkersController::class,'boolent_must_not']); //not
 Route::get('boolent_should', [Controller\WorkersController::class,'boolent_should']); // or
 Route::get('query', [Controller\WorkersController::class,'query']);
+Route::get('count', [Controller\WorkersController::class,'count']);
+Route::get('mapping', [Controller\WorkersController::class,'mapping']);
+Route::get('bulk', [Controller\WorkersController::class,'bulk']);
+Route::get('queryString', [Controller\WorkersController::class,'queryString']);
+Route::get('deleteByQuery', [Controller\WorkersController::class,'deleteByQuery']);
+Route::get('mget', [Controller\WorkersController::class,'mget']);
+Route::get('update_by_query', [Controller\WorkersController::class,'update_by_query']);
+Route::get('asyncSearch', [Controller\WorkersController::class,'asyncSearch']);
+Route::get('reindex', [Controller\WorkersController::class,'reindex']);
+
+
 
 
 Route::get('index', [Controller\HomeController::class,'index']);
+
+
+
+
 

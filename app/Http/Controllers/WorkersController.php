@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Dotenv\Dotenv;
 use Elastic\Elasticsearch\ClientBuilder;
 
@@ -37,10 +38,12 @@ class WorkersController extends Controller
         $client=$this->getClient();
         $paraams=[
             'size'=>100,
+            'index'=>'user2'
         ];
         $data=$client->search($paraams);
         dd($data->asArray());
     }
+
 
     ///done
     public function Indexing()
@@ -50,19 +53,28 @@ class WorkersController extends Controller
         $params=[
             'index'=>'user',
             'id'=>'my_id4535',
-            'body'=>['name'=>'holoo', 'country'=>"iranb"],
+            'body'=>['name'=>'مزکر ایران می باشد', 'country'=>" تهران", 'dob'=>"2000-12-10"],
         ];
 
         $response=$client->index($params);
-        dd($response->asArray());
+        dd($response->asArray(), "T");
     }
+
+    public function count()
+    {
+        $client=$this->getClient();
+
+        $data=$client->count();
+        dd($data->asArray());
+    }
+
 
     public function serach()
     {
         $client=$this->getClient();
         $params=[];
         $params['index']='_all';
-        $params['body']['query']['match']['name']='aminsss';
+        $params['body']['query']['match']['country']='تهران';
         $data=$client->search($params);
         dd($data->asArray());
     }
@@ -71,11 +83,10 @@ class WorkersController extends Controller
     {
         $client=$this->getClient();
         $params=[
-            'index'=>'my_amin',
-            'id'=>"my_id",
+            'index'=>'users',
         ];
         $data=$client->get($params);
-        dd($data->asArray());
+        return $data->asArray();
     }
 
     ///done
@@ -87,9 +98,8 @@ class WorkersController extends Controller
             'index'=>'user',
             'id'=>"my_id4535",
             'body'=>[
-                'doc'=>[
-                    'name'=>'aminsss',
-                ],
+                "counter"=>1,
+                "tags"=>["red"]
             ],
 
         ];
@@ -107,6 +117,25 @@ class WorkersController extends Controller
             'id'=>"my_id4535",
         ];
         $response=$client->delete($params);
+        dd($response);
+    }
+
+    public function deleteByQuery()
+    {
+        $client=$this->getClient();
+
+        $params=[
+            'index'=>'user',
+            'body'=>[
+                'query'=>[
+                    "term"=>[
+                        "user.id"=>"Gljc4oIB8zeRTtL6MAeq"
+                    ]
+                ]
+            ]
+
+        ];
+        $response=$client->deleteByQuery($params);
         dd($response);
     }
 
@@ -180,8 +209,8 @@ class WorkersController extends Controller
                     'bool'=>[
                         'filter'=>[
                             'range'=>[
-                                'price'=>['gte'=>500] ,
-                                 'price'=>['lte'=>500]
+                                'price'=>['gte'=>500],
+                                'price'=>['lte'=>500]
                             ]
 
                         ]
@@ -221,6 +250,7 @@ class WorkersController extends Controller
         dd($result);
     }
 
+    // Parameters  gt < gte <=   lt <  lte <=
     public function boolent_must_not() ///serach 1  must => not
     {
         $client=$this->getClient();
@@ -291,6 +321,163 @@ class WorkersController extends Controller
 
         ];
         $response=$client->sql()->query($params);
+        $result=$response->asArray();
+        dd($result);
+    }
+
+    public function mapping()
+    {
+        $client=$this->getClient();
+        $params=[
+            'index'=>'users',
+            'id'=>'my_i63d4535',
+            'body'=>[
+
+                'mappings'=>[
+                    'properties'=>[
+                        'dob'=>[
+                            'type'=>"date"
+                        ]
+                    ]
+                ]
+            ]
+
+        ];
+        $response=$client->create($params);
+        $result=$response->asArray();
+
+        dd($result);
+    }
+
+    public function bulk()
+    {
+        $client=$this->getClient();
+
+        for($i=0; $i < 100; $i++) {
+            $params['body'][]=[
+                'index'=>[
+                    '_index'=>'my_index',
+                ]
+            ];
+
+            $params['body'][]=[
+                'my_field'=>'my_value',
+                'second_field'=>'some more values'
+            ];
+        }
+
+        $response=$client->bulk($params);
+        $result=$response->asArray();
+
+    }
+
+    public function queryString()
+    {
+        $client=$this->getClient();
+        $params=[
+            'size'=>100,
+            'body'=>[
+                'query'=>[
+                    'query_string'=>[
+                        'query'=>"DVM",
+                        'fields'=>["name"]
+                    ]
+
+                ]
+            ]
+
+        ];
+        $response=$client->search($params);
+        $result=$response->asArray()['hits']['hits'];
+        dd($result);
+    }
+
+    public function mget()
+    {
+        $client=$this->getClient();
+        $params=[
+            'size'=>100,
+            'body'=>[
+                'docs'=>[
+                    [
+                        "_index"=>"my_index",
+                        "_id"=>"LFjc4oIB8zeRTtL6MAeq"
+                    ]
+                ]
+            ]
+
+        ];
+        $response=$client->mget($params);
+        $result=$response->asArray();
+        dd($result);
+    }
+
+    public function update_by_query()
+    {
+        $client=$this->getClient();
+        $params=[
+            'index'=>'user',
+            'body'=>[
+                'query'=>[
+                    'match'=>[
+                        "_id"=>"my_id452"
+                    ]
+                ],
+                "script"=>[
+                    "inline"=>'ctx._source.name= params.name',
+                    "params"=>[
+                        "name"=>4
+                    ]
+                ]
+
+            ]
+        ];
+        $response=$client->updateByQuery($params);
+        $result=$response->asArray();
+        dd($result);
+    }
+
+    public function asyncSearch()
+    {
+        $client=$this->getClient();
+        $params=[
+            'index'=>'user',
+            'body'=>[
+               "query"=>[
+                   "aggs"=>[
+                       "name"=>[
+                           "terms"=>[
+                               "field"=>"name",
+                               "size"=>10
+                           ]
+                       ]
+                   ]
+               ]
+
+            ]
+        ];
+        $response=$client->asyncSearch($params);
+        $result=$response->asArray();
+        dd($result);
+    }
+    ///Copies documents from a source to a destination.
+        public function reindex()
+    {
+        $client=$this->getClient();
+        $params=[
+            'index'=>'user',
+            'body'=>[
+
+                  "source"=>[
+                      "index"=>'user2'
+                  ],
+                  'dest'=>[
+                      'index'=>'user3'
+                  ]
+
+            ]
+        ];
+        $response=$client->reindex($params);
         $result=$response->asArray();
         dd($result);
     }
