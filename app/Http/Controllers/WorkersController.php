@@ -2,25 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use Dotenv\Dotenv;
 use Elastic\Elasticsearch\ClientBuilder;
 
 class WorkersController extends Controller
 {
-    /**
-     * @return \Elastic\Elasticsearch\Client
-     * @throws \Elastic\Elasticsearch\Exception\AuthenticationException
-     */
-    protected function getClient()
-    {
-        $client=ClientBuilder::create()
-            ->setSSLVerification(false)
-            ->setHosts(['http://localhost:9200/'])
-            ->build();
-        return $client;
-    }
-
     /**
      * @throws \Elastic\Elasticsearch\Exception\AuthenticationException
      * @throws \Elastic\Elasticsearch\Exception\ClientResponseException
@@ -33,14 +18,31 @@ class WorkersController extends Controller
         echo $response['version']['number']; // 8.0.0
     }
 
+    /**
+     * @return \Elastic\Elasticsearch\Client
+     * @throws \Elastic\Elasticsearch\Exception\AuthenticationException
+     */
+    protected function getClient()
+    {
+        $client=ClientBuilder::create()
+            ->setSSLVerification(false)
+            ->setApiKey("RUpvZ000TUJUbkVrcEZXRkhYbFc6RmlKRnhMYVlSSHVSdkF2a285ek5vUQ==")
+            ->setHosts(['https://localhost:9200/'])
+            ->build();
+        return $client;
+
+    }
+
     public function lists()
     {
         $client=$this->getClient();
-        $paraams=[
-            'size'=>100,
-            'index'=>'user2'
+
+        $params=[
+            'size'=>'100',
+            'index'=>'shop2',
+
         ];
-        $data=$client->search($paraams);
+        $data=$client->search($params);
         dd($data->asArray());
     }
 
@@ -83,7 +85,7 @@ class WorkersController extends Controller
     {
         $client=$this->getClient();
         $params=[
-            'index'=>'users',
+            'index'=>'shop',
         ];
         $data=$client->get($params);
         return $data->asArray();
@@ -133,7 +135,6 @@ class WorkersController extends Controller
                     ]
                 ]
             ]
-
         ];
         $response=$client->deleteByQuery($params);
         dd($response);
@@ -161,7 +162,6 @@ class WorkersController extends Controller
         $result=$response->asArray()['hits']['hits'];
         dd($result);
     }
-
 
     /***** match1 * ***************************/
     public function match() ///serach fulll
@@ -329,15 +329,13 @@ class WorkersController extends Controller
     {
         $client=$this->getClient();
         $params=[
-            'index'=>'users',
-            'id'=>'my_i63d4535',
+            'index'=>'shop',
+            'id'=>'W5pOK4MBTnEkpFWFcXhp',
             'body'=>[
 
                 'mappings'=>[
                     'properties'=>[
-                        'dob'=>[
-                            'type'=>"date"
-                        ]
+                            'title'=>"date"
                     ]
                 ]
             ]
@@ -416,17 +414,15 @@ class WorkersController extends Controller
     {
         $client=$this->getClient();
         $params=[
-            'index'=>'user',
+            'index'=>'_all',
             'body'=>[
                 'query'=>[
-                    'match'=>[
-                        "_id"=>"my_id452"
-                    ]
+                    'match_all'=>(object)[] // this cast is necessary!
                 ],
                 "script"=>[
-                    "inline"=>'ctx._source.name= params.name',
+                    "inline"=>'ctx._source.name= params.value',
                     "params"=>[
-                        "name"=>4
+                        "name"=>"amin"
                     ]
                 ]
 
@@ -443,16 +439,16 @@ class WorkersController extends Controller
         $params=[
             'index'=>'user',
             'body'=>[
-               "query"=>[
-                   "aggs"=>[
-                       "name"=>[
-                           "terms"=>[
-                               "field"=>"name",
-                               "size"=>10
-                           ]
-                       ]
-                   ]
-               ]
+                "query"=>[
+                    "aggs"=>[
+                        "name"=>[
+                            "terms"=>[
+                                "field"=>"name",
+                                "size"=>10
+                            ]
+                        ]
+                    ]
+                ]
 
             ]
         ];
@@ -460,20 +456,21 @@ class WorkersController extends Controller
         $result=$response->asArray();
         dd($result);
     }
+
     ///Copies documents from a source to a destination.
-        public function reindex()
+    public function reindex()
     {
         $client=$this->getClient();
         $params=[
             'index'=>'user',
             'body'=>[
 
-                  "source"=>[
-                      "index"=>'user2'
-                  ],
-                  'dest'=>[
-                      'index'=>'user3'
-                  ]
+                "source"=>[
+                    "index"=>'user2'
+                ],
+                'dest'=>[
+                    'index'=>'user3'
+                ]
 
             ]
         ];
@@ -482,4 +479,155 @@ class WorkersController extends Controller
         dd($result);
     }
 
+    public function Regexp()
+    {
+        $client=$this->getClient();
+        $params=[
+            'body'=>[
+                "query"=>[
+                    "regexp"=>[
+                        'name'=>'*m.*'
+                    ]
+                ]
+            ]
+        ];
+        $response=$client->search($params);
+        $result=$response->asArray();
+        dd($result);
+    }
+
+    public function fuzzy()
+    {
+        $client=$this->getClient();
+        $params=[
+            'body'=>[
+                "query"=>[
+//                    "fuzzy"=>[
+//                        'name.keyword'=>'amin'
+//                    ]
+                    "fuzzy"=>[
+                        'name'=>['value'=>'amin', 'fuzziness'=>'auto']
+                    ]
+                ]
+            ]
+        ];
+        $response=$client->search($params);
+        $result=$response->asArray();
+        dd($result);
+    }
+
+    public function msearch()
+    {
+        $client=$this->getClient();
+
+        $params=[
+            "index"=>"user",
+            "body"=>[
+                'query'=>[
+                    "match"=>["fist_name"=>"amin"],
+                    'match_all'=>(object)[] // this cast is necessary!
+
+                ]
+            ]
+        ];
+
+        $result=$client->msearch($params);
+        $r=$result->asArray();
+        dd($r);
+
+    }
+
+    /**
+     * @throws \Elastic\Elasticsearch\Exception\AuthenticationException
+     * @throws \Elastic\Elasticsearch\Exception\ClientResponseException
+     * @throws \Elastic\Elasticsearch\Exception\ServerResponseExceptionThe
+     * combined_fields query supports searching multiple text fields as
+     * if their contents had been indexed into one combined field.
+     * The query takes a term-centric view of the input string:
+     * first it analyzes the query string into individual terms,
+     * then looks for each term in any of the fields.
+     * This query is particularly useful when a match could span multiple text fields,
+     * for example the title, abstract, and body of an article:
+     */
+    public function combined_fields()
+    {
+        $client=$this->getClient();
+
+        $params=[
+            "index"=>"_all",
+            "body"=>[
+                "query"=>[
+                    "combined_fields"=>[
+                        "query"=>"some more values",
+                        "fields"=>["second_field"],
+                        "operator"=>"and"
+                    ]
+                ]
+            ]   ///
+        ];
+
+        $result=$client->search($params);
+        $r=$result->asArray();
+        dd($r);
+
+    }
+
+    public function indices()
+    {
+        $client=$this->getClient();
+
+        $params=[
+            'index'=>'shop',
+        ];
+        $response=$client->indices()->delete($params);
+        dd($response);
+    }
+
+    public function mtermvectors()
+    {
+        $client=$this->getClient();
+
+        $params=[
+            "body"=>[
+                "docs"=>[
+                    [
+                        "_index"=>"shop",
+                        "_id"=>"WJpOK4MBTnEkpFWFcHjW",
+                        "term_statistics"=>true
+                    ],
+                    [
+                        "_index"=>"shop",
+                        "_id"=>"YppOK4MBTnEkpFWFcnhB",
+                        "fields"=>[
+                            "body"
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+
+        $response=$client->mtermvectors($params);
+        dd($response->asArray());
+
+
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

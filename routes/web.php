@@ -37,12 +37,19 @@ Route::get('mget', [Controller\WorkersController::class,'mget']);
 Route::get('update_by_query', [Controller\WorkersController::class,'update_by_query']);
 Route::get('asyncSearch', [Controller\WorkersController::class,'asyncSearch']);
 Route::get('reindex', [Controller\WorkersController::class,'reindex']);
+Route::get('Regexp', [Controller\WorkersController::class,'Regexp']);
+Route::get('fuzzy', [Controller\WorkersController::class,'fuzzy']);
+Route::get('mserach', [Controller\WorkersController::class,'msearch']);
+Route::get('combined_fields', [Controller\WorkersController::class,'combined_fields']);
+Route::get('indices', [Controller\WorkersController::class,'indices']);
+Route::get('mtermvectors', [Controller\WorkersController::class,'mtermvectors']);
 
 
 
 
 Route::get('index', [Controller\HomeController::class,'index']);
 
+Route::post('myserach', [Controller\HomeController::class,'serach']);
 
 
 

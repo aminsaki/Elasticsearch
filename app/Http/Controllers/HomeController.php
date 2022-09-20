@@ -2,55 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Worker;
+use App\Models\Post;
 use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
-use App\Http\Requests;
-use Illuminate\Support\Str;
 
 class HomeController extends Controller
 {
-
-
-    public function index(Request $request)
+    public function index()
     {
-        if ( $request->search ) {
-            return view('WorkerSearch', ['elastic'=>$this->serach($request->search)]);
-        }
-        return view('WorkerSearch', ['workers'=>Worker::all()]);
-    }
-
-    public function serach($search)
-    {
-        $client=$this->getClient();
-        $params=[];
-        $params['index']='_all';
-        $params['body']['query']['match']['country']=$search;
-        $data=$client->search($params);
-        $response=json_decode($data, true);
-        if ( $response['hits']['total']['value'] === 0 ) {
-
-            $questRel=Worker::WhereRaw("country LIKE ? ", '%' . $search . '%')->get();
-            $this->Indexing($questRel);
-        }
-        return $response['hits']['hits'];
+//        $param=[];
+//        $post=Post::with('category')->get();
+//
+//        foreach($post as $row) {
+//            $param['index']='shop';
+//            $param['body']['title']=$row->title;
+//            $param['body']['image_url']=$row->image_url;
+//            $param['body']['price']=$row->price;
+//            $param['body']['option']=$row->option;
+//            $param['body']['cat_title']=$row->category->title;
+//            $param['body']['body']=$row->body;
+//            $param['mappings']['properties']['cat_title']['type']='keyword';
+//            $param['mappings']['properties']['option']['type']='keyword';
+//            $this->getClient()->index($param);
+//        }
+        return view('welcome', ['posts'=>Post::with('category')->get()->toArray()]);
 
     }
 
-    public function Indexing($questRel)
+    public function serach(Request $request)
     {
-        $client=$this->getClient();
-        $params=[];
-        $params['index']="my_index";
-        $params['id']=Str::random(30);
-        foreach($questRel as $row) {
-            $params['body']=['name'=>$row->name, 'country'=>$row->ountry];
-        }
-
-        $data=$client->index($params);
-        $response=json_decode($data, true);
-        return $response;
+        $param=[
+            'body'=>[
+                'query'=>[
+                    "match"=>[
+                        "title"=>"ms"
+                    ]
+                ]
+            ]
+        ];
+        $result=$this->getClient()->search($param);
+        dd($result->asArray());
+        return view('welcome', ['posts'=>$result->asArray()['hits']['hits']]);
 
     }
 
@@ -58,9 +50,29 @@ class HomeController extends Controller
     {
         $client=ClientBuilder::create()
             ->setSSLVerification(false)
-            ->setHosts(['http://localhost:9200/'])
+            ->setApiKey("RUpvZ000TUJUbkVrcEZXRkhYbFc6RmlKRnhMYVlSSHVSdkF2a285ek5vUQ==")
+            ->setHosts(['https://localhost:9200/'])
             ->build();
         return $client;
+
+    }
+
+    public function putmapping()
+    {
+        $param=[
+            'index'=>'shop',
+            'body'=>[
+                "mappings"=>[
+                    'properties'=>[
+                        "name"=>["type"=>"text"]
+
+                    ]
+                ]
+            ]
+
+        ];
+        $result=$this->getClient()->indices($param)->
+        return view('welcome', ['posts'=>$result->asArray()['hits']['hits']]);
     }
 
 }
