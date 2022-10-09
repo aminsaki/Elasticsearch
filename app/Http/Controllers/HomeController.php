@@ -71,7 +71,8 @@ class HomeController extends Controller
             ]
 
         ];
-        $result=$this->getClient()->indices($param)->
+
+        $result=$this->getClient()->indices($param)->putMapping()
         return view('welcome', ['posts'=>$result->asArray()['hits']['hits']]);
     }
 

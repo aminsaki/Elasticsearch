@@ -39,7 +39,7 @@ class WorkersController extends Controller
 
         $params=[
             'size'=>'100',
-            'index'=>'shop2',
+            'index'=>'shop',
 
         ];
         $data=$client->search($params);
